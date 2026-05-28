@@ -55,7 +55,6 @@ pub fn init_token_account(
         mint,
         owner,
     }
-    // TODO: replace with invoke_signed
     .invoke()
 }
 
@@ -101,6 +100,5 @@ pub fn init_mint(
         mint_authority,
         freeze_authority,
     }
-    // TODO: replace with invoke_signed
     .invoke()
 }

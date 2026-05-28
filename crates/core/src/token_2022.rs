@@ -95,7 +95,6 @@ pub fn init_token_account(
         owner,
         token_program: &pinocchio_token_2022::ID,
     }
-    // TODO: replace with invoke_signed
     .invoke()
 }
 
@@ -148,6 +147,5 @@ pub fn init_mint(
         freeze_authority,
         token_program: &pinocchio_token_2022::ID,
     }
-    // TODO: replace with invoke_signed
     .invoke()
 }
