@@ -9,7 +9,7 @@ version = "0.1.0"
 license = "MIT"
 
 [features]
-derive = ["pinocchio-derive"]
+derive = ["dep:pinocchio-derive"]
 
 [dependencies]
 pinocchio = { workspace = true }
