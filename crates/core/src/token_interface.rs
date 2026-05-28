@@ -1,11 +1,13 @@
 //! Unified helpers that dispatch to SPL Token or Token-2022 implementations.
 
-use pinocchio::{
-    address::Address, cpi::Seed as CpiSeed, error::ProgramError, sysvars::rent::Rent, AccountView,
-    ProgramResult,
+use {
+    pinocchio::{
+        address::Address, cpi::Seed as CpiSeed, error::ProgramError, sysvars::rent::Rent,
+        AccountView, ProgramResult,
+    },
+    pinocchio_token::state::{Account as TokenAccount, Mint},
+    pinocchio_token_2022::state::{Account as TokenAccount2022, Mint as Mint2022},
 };
-use pinocchio_token::state::{Account as TokenAccount, Mint};
-use pinocchio_token_2022::state::{Account as TokenAccount2022, Mint as Mint2022};
 
 use crate::{token, token_2022, DataLen};
 
@@ -19,7 +21,8 @@ fn is_token_2022_program(program: &Address) -> bool {
     program == &pinocchio_token_2022::ID
 }
 
-/// Validates a token account for either SPL Token or Token-2022, based on account owner.
+/// Validates a token account for either SPL Token or Token-2022, based on
+/// account owner.
 #[inline]
 pub fn check_token_account(account: &AccountView) -> Result<(), ProgramError> {
     if is_token_program(account.owner()) {
@@ -76,7 +79,8 @@ pub fn init_token_account_if_needed(
     }
 }
 
-/// Validates a mint account for either SPL Token or Token-2022, based on account owner.
+/// Validates a mint account for either SPL Token or Token-2022, based on
+/// account owner.
 #[inline]
 pub fn check_mint(account: &AccountView) -> Result<(), ProgramError> {
     if is_token_program(account.owner()) {

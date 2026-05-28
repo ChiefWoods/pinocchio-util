@@ -1,8 +1,12 @@
-use proc_macro::TokenStream;
-use quote::quote;
-use syn::{
-    parse::Parse, parse::ParseStream, parse_macro_input, punctuated::Punctuated, Data, DeriveInput,
-    Ident, Meta, Token,
+use {
+    proc_macro::TokenStream,
+    quote::quote,
+    syn::{
+        parse::{Parse, ParseStream},
+        parse_macro_input,
+        punctuated::Punctuated,
+        Data, DeriveInput, Ident, Meta, Token,
+    },
 };
 
 /// Generates a trait implementation for `DataLen`:

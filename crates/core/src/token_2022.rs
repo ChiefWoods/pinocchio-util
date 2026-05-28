@@ -1,12 +1,14 @@
 //! Helpers for Token-2022 mint and token-account flows.
 
-use pinocchio::{
-    address::Address, cpi::Seed as CpiSeed, error::ProgramError, sysvars::rent::Rent, AccountView,
-    ProgramResult,
-};
-use pinocchio_token_2022::{
-    instructions::{InitializeAccount3, InitializeMint2},
-    state::{Account as TokenAccount, Mint},
+use {
+    pinocchio::{
+        address::Address, cpi::Seed as CpiSeed, error::ProgramError, sysvars::rent::Rent,
+        AccountView, ProgramResult,
+    },
+    pinocchio_token_2022::{
+        instructions::{InitializeAccount3, InitializeMint2},
+        state::{Account as TokenAccount, Mint},
+    },
 };
 
 use crate::{create_account, DataLen};

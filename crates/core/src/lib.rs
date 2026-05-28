@@ -95,7 +95,6 @@ pub fn close_account(account: &mut AccountView, destination: &mut AccountView) -
     account.resize(1)?;
     account.close()
 }
-
 /// Load an immutable reference to an account's data as an arbitrary type. This
 /// requires that the provided type implements the `DataLen` trait so there's
 /// assurance that no out of bounds access will occur.
@@ -124,9 +123,9 @@ pub fn load<T: DataLen>(account: &AccountView) -> Result<&T, ProgramError> {
     })
 }
 
-/// Load a mutable reference to an account's data as an arbitrary type. This requires
-/// that the provided type implements the `DataLen` trait so there's assurance that
-/// no out of bounds access will occur.
+/// Load a mutable reference to an account's data as an arbitrary type. This
+/// requires that the provided type implements the `DataLen` trait so there's
+/// assurance that no out of bounds access will occur.
 ///
 /// # Example
 ///
@@ -152,11 +151,12 @@ pub fn load_mut<T: DataLen>(account: &mut AccountView) -> Result<&mut T, Program
     })
 }
 
-/// Extract an account's discriminator. This is useful if working with Anchor programs,
-/// and you need to validate that a provided account is of a specific type.
+/// Extract an account's discriminator. This is useful if working with Anchor
+/// programs, and you need to validate that a provided account is of a specific
+/// type.
 ///
-/// You can optionally provide a custom length for the discriminator, and if not provided
-/// the length will be defaulted to 8 bytes.
+/// You can optionally provide a custom length for the discriminator, and if not
+/// provided the length will be defaulted to 8 bytes.
 ///
 /// # Example
 ///
@@ -167,7 +167,6 @@ pub fn load_mut<T: DataLen>(account: &mut AccountView) -> Result<&mut T, Program
 /// let discriminator = load_discriminator(&account, Some(4)).unwrap();
 /// assert_eq!(discriminator, &[0x00, 0x00, 0x00, 0x00]);
 /// ```
-///
 #[inline]
 pub fn load_discriminator(
     account: &AccountView,

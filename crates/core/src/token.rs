@@ -1,12 +1,14 @@
 //! Helpers for SPL Token (legacy program) mint and token-account flows.
 
-use pinocchio::{
-    address::Address, cpi::Seed as CpiSeed, error::ProgramError, sysvars::rent::Rent, AccountView,
-    ProgramResult,
-};
-use pinocchio_token::{
-    instructions::{InitializeAccount3, InitializeMint2},
-    state::{Account as TokenAccount, Mint},
+use {
+    pinocchio::{
+        address::Address, cpi::Seed as CpiSeed, error::ProgramError, sysvars::rent::Rent,
+        AccountView, ProgramResult,
+    },
+    pinocchio_token::{
+        instructions::{InitializeAccount3, InitializeMint2},
+        state::{Account as TokenAccount, Mint},
+    },
 };
 
 use crate::{create_account, DataLen};
