@@ -5,6 +5,11 @@ pub trait DataLen {
     const LEN: usize;
 }
 
+/// Get the PDA seed namespace for a program account type.
+pub trait Seed {
+    const SEED: &'static str;
+}
+
 /// Generate an enum and associated function for updating fields
 /// on an account struct.
 pub trait AccountUpdates {
