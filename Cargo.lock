@@ -100,6 +100,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "pinocchio-associated-token-account"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c552da2a965b33511ac54494e434e69be0ae12da1619a72594b76703c3dca211"
+dependencies = [
+ "solana-account-view",
+ "solana-address",
+ "solana-instruction-view",
+ "solana-program-error",
+]
+
+[[package]]
 name = "pinocchio-derive"
 version = "0.2.0"
 dependencies = [
@@ -148,6 +160,7 @@ name = "pinocchio-util"
 version = "0.2.0"
 dependencies = [
  "pinocchio",
+ "pinocchio-associated-token-account",
  "pinocchio-derive",
  "pinocchio-system",
  "pinocchio-token",
