@@ -13,6 +13,7 @@ derive = ["dep:pinocchio-derive"]
 
 [dependencies]
 pinocchio = { workspace = true }
+pinocchio-system = { workspace = true }
 pinocchio-derive = { workspace = true, optional = true }
 
 [package.metadata.docs.rs]

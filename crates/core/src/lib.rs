@@ -1,4 +1,13 @@
-use pinocchio::{error::ProgramError, AccountView};
+use pinocchio::{
+    address::Address,
+    cpi::{Seed as CpiSeed, Signer},
+    error::ProgramError,
+    sysvars::rent::Rent,
+    AccountView,
+};
+use pinocchio_system::instructions::CreateAccount;
+
+use crate::sysvar::get_sysvar;
 
 pub mod sysvar;
 
@@ -28,6 +37,34 @@ pub trait Validate<'info> {
 pub trait Context<'info>: Sized {
     const ACCOUNTS_LEN: usize;
     fn build(accounts: &'info mut [AccountView]) -> Result<Self, ProgramError>;
+}
+
+/// Create a new program-owned account using signer seeds.
+#[inline]
+pub fn create_account<T>(
+    payer: &AccountView,
+    account: &AccountView,
+    rent: Option<&Rent>,
+    signer_seeds: &[CpiSeed],
+    owner: &Address,
+) -> Result<(), ProgramError>
+where
+    T: DataLen,
+{
+    let signers = [Signer::from(signer_seeds)];
+
+    let rent = get_sysvar::<Rent>(rent)?;
+
+    CreateAccount {
+        from: payer,
+        to: account,
+        space: T::LEN as u64,
+        owner,
+        lamports: rent.minimum_balance_unchecked(T::LEN),
+    }
+    .invoke_signed(&signers)?;
+
+    Ok(())
 }
 
 /// Load an immutable reference to an account's data as an arbitrary type. This requires
