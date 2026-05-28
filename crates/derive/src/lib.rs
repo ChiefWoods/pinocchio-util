@@ -1,9 +1,8 @@
 use proc_macro::TokenStream;
-use proc_macro2::Span;
 use quote::quote;
 use syn::{
     parse::Parse, parse::ParseStream, parse_macro_input, punctuated::Punctuated, Data, DeriveInput,
-    Field, Ident, Meta, Token,
+    Ident, Meta, Token,
 };
 
 /// Generates a trait implementation for `DataLen`:
@@ -143,8 +142,8 @@ impl Parse for ValidationAttr {
         let mut non_empty = false;
         let mut len = None;
         let mut id = None;
-        let mut is_signer = false;
-        let mut is_executable = false;
+        let is_signer = false;
+        let is_executable = false;
 
         let args = Punctuated::<Meta, Token![,]>::parse_terminated(input)?;
 
