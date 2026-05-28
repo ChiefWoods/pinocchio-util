@@ -16,6 +16,14 @@ pub mod sysvar;
 /// Get the length of an account's data.
 pub trait DataLen {
     const LEN: usize;
+
+    fn check_data_len(account: &AccountView) -> Result<(), ProgramError> {
+        if account.data_len() != Self::LEN {
+            return Err(ProgramError::InvalidAccountData);
+        }
+
+        Ok(())
+    }
 }
 
 /// Get the PDA seed namespace for a program account type.
