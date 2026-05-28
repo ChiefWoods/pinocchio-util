@@ -136,6 +136,7 @@ pub type ExtensionsVec = Vec<ExtensionType>;
 
 const ACCOUNT_TYPE_OFFSET: usize = TokenAccount2022::BASE_LEN;
 const MINT_ACCOUNT_TYPE: u8 = 1;
+const TOKEN_ACCOUNT_TYPE: u8 = 2;
 const TYPE_SIZE: usize = size_of::<u16>();
 const LENGTH_SIZE: usize = size_of::<u16>();
 const TLV_HEADER_SIZE: usize = TYPE_SIZE + LENGTH_SIZE;
@@ -292,6 +293,49 @@ impl ExtensionType {
 /// Local extension trait equivalent to Anchor's token extension bound.
 pub trait Extension {
     const TYPE: ExtensionType;
+}
+
+/// Iterate over TLV extension data and return all extension types present.
+/// Works for both Token-2022 mint and token-account layouts.
+pub fn get_all_extensions(data: &[u8]) -> Result<Vec<ExtensionType>, ProgramError> {
+    let mut extension_types = Vec::new();
+
+    if data.len() <= MINT_TLV_START {
+        return Ok(extension_types);
+    }
+
+    let account_type_byte = data[ACCOUNT_TYPE_OFFSET];
+    if account_type_byte != MINT_ACCOUNT_TYPE && account_type_byte != TOKEN_ACCOUNT_TYPE {
+        return Err(ProgramError::InvalidAccountData);
+    }
+
+    let ext_bytes = &data[MINT_TLV_START..];
+    let mut start = 0usize;
+
+    while start.saturating_add(TLV_HEADER_SIZE) <= ext_bytes.len() {
+        let type_bytes: [u8; 2] = ext_bytes[start..start + TYPE_SIZE]
+            .try_into()
+            .map_err(|_| ProgramError::InvalidAccountData)?;
+        let ext_type = ExtensionType::try_from(u16::from_le_bytes(type_bytes))
+            .map_err(|_| ProgramError::InvalidAccountData)?;
+
+        extension_types.push(ext_type);
+
+        let len_bytes: [u8; 2] = ext_bytes[start + TYPE_SIZE..start + TLV_HEADER_SIZE]
+            .try_into()
+            .map_err(|_| ProgramError::InvalidAccountData)?;
+        let ext_len = u16::from_le_bytes(len_bytes) as usize;
+
+        let next_start = start
+            .saturating_add(TLV_HEADER_SIZE)
+            .saturating_add(ext_len);
+        if next_start > ext_bytes.len() {
+            return Err(ProgramError::InvalidAccountData);
+        }
+        start = next_start;
+    }
+
+    Ok(extension_types)
 }
 
 /// Returns the required account size for a mint with optional Token-2022
