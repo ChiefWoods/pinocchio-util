@@ -1,4 +1,4 @@
-use pinocchio::{account_info::AccountInfo, program_error::ProgramError};
+use pinocchio::{error::ProgramError, AccountView};
 
 /// Get the length of an account's data.
 pub trait DataLen {
@@ -20,7 +20,7 @@ pub trait Validate<'info> {
 /// Build an instruction context with both accounts and instruction data
 pub trait Context<'info>: Sized {
     const ACCOUNTS_LEN: usize;
-    fn build(accounts: &'info [AccountInfo]) -> Result<Self, ProgramError>;
+    fn build(accounts: &'info mut [AccountView]) -> Result<Self, ProgramError>;
 }
 
 /// Load an immutable reference to an account's data as an arbitrary type. This requires
@@ -42,12 +42,12 @@ pub trait Context<'info>: Sized {
 /// let account_data = load::<UserData>(&account)?;
 /// ```
 #[inline]
-pub fn load<T: DataLen>(account: &AccountInfo) -> Result<&T, ProgramError> {
+pub fn load<T: DataLen>(account: &AccountView) -> Result<&T, ProgramError> {
     if account.data_len() != T::LEN {
         return Err(ProgramError::InvalidAccountData);
     }
     Ok(unsafe {
-        &*core::mem::transmute::<*const u8, *const T>(account.borrow_data_unchecked().as_ptr())
+        &*core::mem::transmute::<*const u8, *const T>(account.borrow_unchecked().as_ptr())
     })
 }
 
@@ -70,14 +70,12 @@ pub fn load<T: DataLen>(account: &AccountInfo) -> Result<&T, ProgramError> {
 /// let mut account_data = load_mut::<UserData>(&account)?;
 /// ```
 #[inline]
-pub fn load_mut<T: DataLen>(account: &AccountInfo) -> Result<&mut T, ProgramError> {
+pub fn load_mut<T: DataLen>(account: &mut AccountView) -> Result<&mut T, ProgramError> {
     if account.data_len() != T::LEN {
         return Err(ProgramError::InvalidAccountData);
     }
     Ok(unsafe {
-        &mut *core::mem::transmute::<*mut u8, *mut T>(
-            account.borrow_mut_data_unchecked().as_mut_ptr(),
-        )
+        &mut *core::mem::transmute::<*mut u8, *mut T>(account.borrow_unchecked_mut().as_mut_ptr())
     })
 }
 
@@ -99,12 +97,12 @@ pub fn load_mut<T: DataLen>(account: &AccountInfo) -> Result<&mut T, ProgramErro
 ///
 #[inline]
 pub fn load_discriminator(
-    account: &AccountInfo,
+    account: &AccountView,
     len: Option<usize>,
 ) -> Result<&[u8; 8], ProgramError> {
     let discriminator_len = len.unwrap_or(8);
     unsafe {
-        account.borrow_data_unchecked()[0..discriminator_len]
+        account.borrow_unchecked()[0..discriminator_len]
             .try_into()
             .map_err(|_| ProgramError::InvalidAccountData)
     }

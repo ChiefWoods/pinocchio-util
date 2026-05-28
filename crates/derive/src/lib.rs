@@ -118,7 +118,7 @@ pub fn derive_updates(input: TokenStream) -> TokenStream {
         impl pinocchio_util::AccountUpdates for #name {
             type Update = #update_enum_name;
 
-            fn updates(&mut self, updates: Self::Update) -> Result<(), pinocchio::program_error::ProgramError> {
+            fn updates(&mut self, updates: Self::Update) -> Result<(), pinocchio::error::ProgramError> {
                 match updates {
                     #(#match_arms)*
                 }
@@ -202,13 +202,13 @@ impl Parse for ValidationAttr {
 /// ```rust
 /// #[derive(Validate)]
 /// struct MyStruct {
-///     // Data length is non-zero, `field_1.key()` is the SYSTEM_PROGRAM_ID (Pubkey)
+///     // Data length is non-zero, `field_1.address()` is the SYSTEM_PROGRAM_ID (Address)
 ///     #[validate(non_empty, id = SYSTEM_PROGRAM_ID)]
-///     field_1: &'a AccountInfo,
+///     field_1: &'a AccountView,
 ///
-///     // Data length is 64, `field_2.key()` is the SOME_ID (Pubkey)
+///     // Data length is 64, `field_2.address()` is the SOME_ID (Address)
 ///     #[validate(len = 64, id = SOME_ID)]
-///     field_2: &'a AccountInfo,
+///     field_2: &'a AccountView,
 /// }
 /// ```
 #[proc_macro_derive(Validate, attributes(validate))]
@@ -241,7 +241,7 @@ pub fn derive_validate(input: TokenStream) -> TokenStream {
                 if attr.non_empty {
                     checks.push(quote! {
                         if self.#field_name.data_len() == 0 {
-                            return Err(pinocchio::program_error::ProgramError::InvalidAccountData);
+                            return Err(pinocchio::error::ProgramError::InvalidAccountData);
                         }
                     });
                 }
@@ -249,15 +249,15 @@ pub fn derive_validate(input: TokenStream) -> TokenStream {
                 if attr.is_signer {
                     checks.push(quote! {
                         if !self.#field_name.is_signer() {
-                            return Err(pinocchio::program_error::ProgramError::InvalidAccountData);
+                            return Err(pinocchio::error::ProgramError::InvalidAccountData);
                         }
                     });
                 }
 
                 if attr.is_executable {
                     checks.push(quote! {
-                        if !self.#field_name.is_executable() {
-                            return Err(pinocchio::program_error::ProgramError::InvalidAccountData);
+                        if !self.#field_name.executable() {
+                            return Err(pinocchio::error::ProgramError::InvalidAccountData);
                         }
                     });
                 }
@@ -265,15 +265,15 @@ pub fn derive_validate(input: TokenStream) -> TokenStream {
                 if let Some(len) = attr.len {
                     checks.push(quote! {
                         if self.#field_name.data_len() != #len {
-                            return Err(pinocchio::program_error::ProgramError::InvalidAccountData);
+                            return Err(pinocchio::error::ProgramError::InvalidAccountData);
                         }
                     });
                 }
 
                 if let Some(id) = attr.id {
                     checks.push(quote! {
-                        if self.#field_name.key() != &#id {
-                            return Err(pinocchio::program_error::ProgramError::InvalidAccountData);
+                        if self.#field_name.address() != &#id {
+                            return Err(pinocchio::error::ProgramError::InvalidAccountData);
                         }
                     });
                 }
@@ -289,7 +289,7 @@ pub fn derive_validate(input: TokenStream) -> TokenStream {
 
     let expanded = quote! {
         impl<'info> pinocchio_util::Validate<'info> for #name<'info> {
-            fn validate(&self) -> Result<(), pinocchio::program_error::ProgramError> {
+            fn validate(&self) -> Result<(), pinocchio::error::ProgramError> {
                 #(#validation_checks)*
                 Ok(())
             }
@@ -304,14 +304,14 @@ pub fn derive_validate(input: TokenStream) -> TokenStream {
 /// ```rust
 /// pub trait Context<'info> {
 ///     const ACCOUNTS_LEN: usize;
-///     fn build(accounts: &'info [AccountInfo]) -> Result<Self, ProgramError>;
+///     fn build(accounts: &'info [AccountView]) -> Result<Self, ProgramError>;
 /// }
 ///
 /// impl<'info> Context<'info> for MyStruct<'info> {
 ///     // # of fields in the struct
 ///     const ACCOUNTS_LEN: usize = 1;
 ///
-///     fn build(accounts: &'info [AccountInfo]) -> Result<Self, ProgramError> {
+///     fn build(accounts: &'info [AccountView]) -> Result<Self, ProgramError> {
 ///         let ctx = unsafe {
 ///             Self {
 ///                 field_1: &accounts.get_unchecked(0),
@@ -360,11 +360,11 @@ pub fn derive_context(input: TokenStream) -> TokenStream {
         impl<'info> pinocchio_util::Context<'info> for #name<'info> {
             const ACCOUNTS_LEN: usize = #accounts_len;
 
-            fn build(accounts: &'info [pinocchio::account_info::AccountInfo])
-                -> Result<Self, pinocchio::program_error::ProgramError>
+            fn build(accounts: &mut [pinocchio::AccountView])
+                -> Result<Self, pinocchio::error::ProgramError>
             {
                 if accounts.len() != Self::ACCOUNTS_LEN {
-                    return Err(pinocchio::program_error::ProgramError::InvalidAccountData);
+                    return Err(pinocchio::error::ProgramError::InvalidAccountData);
                 }
 
                 Ok(unsafe {
