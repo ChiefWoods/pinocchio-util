@@ -57,8 +57,7 @@ pub fn derive_updates(input: TokenStream) -> TokenStream {
 
     let field_variants: Vec<_> = fields
         .iter()
-        .enumerate()
-        .map(|(_i, field)| {
+        .map(|field| {
             let field_name = field.ident.as_ref().unwrap();
             let _field_type = &field.ty;
             let variant_name = Ident::new(
@@ -84,8 +83,7 @@ pub fn derive_updates(input: TokenStream) -> TokenStream {
 
     let match_arms: Vec<_> = fields
         .iter()
-        .enumerate()
-        .map(|(_i, field)| {
+        .map(|field| {
             let field_name = field.ident.as_ref().unwrap();
             let _field_type = &field.ty;
             let variant_name = Ident::new(
@@ -222,8 +220,7 @@ pub fn derive_validate(input: TokenStream) -> TokenStream {
 
     let validation_checks: Vec<_> = fields
         .iter()
-        .enumerate()
-        .map(|(_i, field)| {
+        .map(|field| {
             let field_name = field.ident.as_ref().unwrap();
 
             let mut validation_attr = None;
