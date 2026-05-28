@@ -11,6 +11,7 @@ use {
 
 use crate::sysvar::get_sysvar;
 
+pub mod associated_token;
 pub mod sysvar;
 pub mod token;
 pub mod token_2022;
