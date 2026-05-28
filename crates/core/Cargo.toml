@@ -17,6 +17,7 @@ pinocchio-system = { workspace = true }
 pinocchio-token = { workspace = true }
 pinocchio-token-2022 = { workspace = true }
 pinocchio-derive = { workspace = true, optional = true }
+bytemuck = "1.24.0"
 
 [package.metadata.docs.rs]
 features = []
