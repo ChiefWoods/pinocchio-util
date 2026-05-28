@@ -1,11 +1,13 @@
-use pinocchio::{
-    address::Address,
-    cpi::{Seed as CpiSeed, Signer},
-    error::ProgramError,
-    sysvars::rent::Rent,
-    AccountView,
+use {
+    pinocchio::{
+        address::Address,
+        cpi::{Seed as CpiSeed, Signer},
+        error::ProgramError,
+        sysvars::rent::Rent,
+        AccountView, ProgramResult, Resize,
+    },
+    pinocchio_system::instructions::CreateAccount,
 };
-use pinocchio_system::instructions::CreateAccount;
 
 use crate::sysvar::get_sysvar;
 
@@ -67,9 +69,25 @@ where
     Ok(())
 }
 
-/// Load an immutable reference to an account's data as an arbitrary type. This requires
-/// that the provided type implements the `DataLen` trait so there's assurance that
-/// no out of bounds access will occur.
+/// Close an account by transferring its lamports to `destination`,
+/// shrinking the source account, and marking its data as closed.
+#[inline]
+pub fn close_account(account: &mut AccountView, destination: &mut AccountView) -> ProgramResult {
+    {
+        let mut data = account.try_borrow_mut()?;
+        data[0] = 0xff;
+    }
+
+    destination.set_lamports(destination.lamports() + account.lamports());
+    account.set_lamports(0);
+
+    account.resize(1)?;
+    account.close()
+}
+
+/// Load an immutable reference to an account's data as an arbitrary type. This
+/// requires that the provided type implements the `DataLen` trait so there's
+/// assurance that no out of bounds access will occur.
 ///
 /// # Example
 ///
