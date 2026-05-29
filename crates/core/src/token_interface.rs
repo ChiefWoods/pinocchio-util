@@ -23,6 +23,45 @@ fn is_token_2022_program(program: &Address) -> bool {
     program == &pinocchio_token_2022::ID
 }
 
+#[repr(u8)]
+#[derive(Clone, Copy)]
+pub enum AuthorityType {
+    MintTokens = 0,
+    FreezeAccount = 1,
+    AccountOwner = 2,
+    CloseAccount = 3,
+}
+
+#[inline]
+fn to_token_authority_type(
+    authority_type: AuthorityType,
+) -> pinocchio_token::instructions::AuthorityType {
+    match authority_type {
+        AuthorityType::MintTokens => pinocchio_token::instructions::AuthorityType::MintTokens,
+        AuthorityType::FreezeAccount => pinocchio_token::instructions::AuthorityType::FreezeAccount,
+        AuthorityType::AccountOwner => pinocchio_token::instructions::AuthorityType::AccountOwner,
+        AuthorityType::CloseAccount => pinocchio_token::instructions::AuthorityType::CloseAccount,
+    }
+}
+
+#[inline]
+fn to_token_2022_authority_type(
+    authority_type: AuthorityType,
+) -> pinocchio_token_2022::instructions::AuthorityType {
+    match authority_type {
+        AuthorityType::MintTokens => pinocchio_token_2022::instructions::AuthorityType::MintTokens,
+        AuthorityType::FreezeAccount => {
+            pinocchio_token_2022::instructions::AuthorityType::FreezeAccount
+        }
+        AuthorityType::AccountOwner => {
+            pinocchio_token_2022::instructions::AuthorityType::AccountOwner
+        }
+        AuthorityType::CloseAccount => {
+            pinocchio_token_2022::instructions::AuthorityType::CloseAccount
+        }
+    }
+}
+
 /// Validates a token account for either SPL Token or Token-2022, based on
 /// account owner.
 #[inline]
@@ -127,6 +166,314 @@ pub fn init_mint(
             mint_authority,
             freeze_authority,
         )
+    } else {
+        Err(ProgramError::InvalidAccountOwner)
+    }
+}
+
+#[inline]
+pub fn transfer(
+    from: &AccountView,
+    to: &AccountView,
+    authority: &AccountView,
+    signer_seeds: &[CpiSeed],
+    amount: u64,
+    token_program: &Address,
+) -> ProgramResult {
+    if is_token_program(token_program) {
+        token::transfer(from, to, authority, signer_seeds, amount)
+    } else if is_token_2022_program(token_program) {
+        token_2022::transfer(from, to, authority, signer_seeds, amount)
+    } else {
+        Err(ProgramError::InvalidAccountOwner)
+    }
+}
+
+#[inline]
+pub fn transfer_checked(
+    from: &AccountView,
+    mint: &AccountView,
+    to: &AccountView,
+    authority: &AccountView,
+    signer_seeds: &[CpiSeed],
+    amount: u64,
+    decimals: u8,
+    token_program: &Address,
+) -> ProgramResult {
+    if is_token_program(token_program) {
+        token::transfer_checked(from, mint, to, authority, signer_seeds, amount, decimals)
+    } else if is_token_2022_program(token_program) {
+        token_2022::transfer_checked(from, mint, to, authority, signer_seeds, amount, decimals)
+    } else {
+        Err(ProgramError::InvalidAccountOwner)
+    }
+}
+
+#[inline]
+pub fn mint_to(
+    mint: &AccountView,
+    account: &AccountView,
+    mint_authority: &AccountView,
+    signer_seeds: &[CpiSeed],
+    amount: u64,
+    token_program: &Address,
+) -> ProgramResult {
+    if is_token_program(token_program) {
+        token::mint_to(mint, account, mint_authority, signer_seeds, amount)
+    } else if is_token_2022_program(token_program) {
+        token_2022::mint_to(mint, account, mint_authority, signer_seeds, amount)
+    } else {
+        Err(ProgramError::InvalidAccountOwner)
+    }
+}
+
+#[inline]
+pub fn mint_to_checked(
+    mint: &AccountView,
+    account: &AccountView,
+    mint_authority: &AccountView,
+    signer_seeds: &[CpiSeed],
+    amount: u64,
+    decimals: u8,
+    token_program: &Address,
+) -> ProgramResult {
+    if is_token_program(token_program) {
+        token::mint_to_checked(
+            mint,
+            account,
+            mint_authority,
+            signer_seeds,
+            amount,
+            decimals,
+        )
+    } else if is_token_2022_program(token_program) {
+        token_2022::mint_to_checked(
+            mint,
+            account,
+            mint_authority,
+            signer_seeds,
+            amount,
+            decimals,
+        )
+    } else {
+        Err(ProgramError::InvalidAccountOwner)
+    }
+}
+
+#[inline]
+pub fn burn(
+    account: &AccountView,
+    mint: &AccountView,
+    authority: &AccountView,
+    signer_seeds: &[CpiSeed],
+    amount: u64,
+    token_program: &Address,
+) -> ProgramResult {
+    if is_token_program(token_program) {
+        token::burn(account, mint, authority, signer_seeds, amount)
+    } else if is_token_2022_program(token_program) {
+        token_2022::burn(account, mint, authority, signer_seeds, amount)
+    } else {
+        Err(ProgramError::InvalidAccountOwner)
+    }
+}
+
+#[inline]
+pub fn burn_checked(
+    account: &AccountView,
+    mint: &AccountView,
+    authority: &AccountView,
+    signer_seeds: &[CpiSeed],
+    amount: u64,
+    decimals: u8,
+    token_program: &Address,
+) -> ProgramResult {
+    if is_token_program(token_program) {
+        token::burn_checked(account, mint, authority, signer_seeds, amount, decimals)
+    } else if is_token_2022_program(token_program) {
+        token_2022::burn_checked(account, mint, authority, signer_seeds, amount, decimals)
+    } else {
+        Err(ProgramError::InvalidAccountOwner)
+    }
+}
+
+#[inline]
+pub fn approve(
+    source: &AccountView,
+    delegate: &AccountView,
+    authority: &AccountView,
+    signer_seeds: &[CpiSeed],
+    amount: u64,
+    token_program: &Address,
+) -> ProgramResult {
+    if is_token_program(token_program) {
+        token::approve(source, delegate, authority, signer_seeds, amount)
+    } else if is_token_2022_program(token_program) {
+        token_2022::approve(source, delegate, authority, signer_seeds, amount)
+    } else {
+        Err(ProgramError::InvalidAccountOwner)
+    }
+}
+
+#[inline]
+pub fn approve_checked(
+    source: &AccountView,
+    mint: &AccountView,
+    delegate: &AccountView,
+    authority: &AccountView,
+    signer_seeds: &[CpiSeed],
+    amount: u64,
+    decimals: u8,
+    token_program: &Address,
+) -> ProgramResult {
+    if is_token_program(token_program) {
+        token::approve_checked(
+            source,
+            mint,
+            delegate,
+            authority,
+            signer_seeds,
+            amount,
+            decimals,
+        )
+    } else if is_token_2022_program(token_program) {
+        token_2022::approve_checked(
+            source,
+            mint,
+            delegate,
+            authority,
+            signer_seeds,
+            amount,
+            decimals,
+        )
+    } else {
+        Err(ProgramError::InvalidAccountOwner)
+    }
+}
+
+#[inline]
+pub fn revoke(
+    source: &AccountView,
+    authority: &AccountView,
+    signer_seeds: &[CpiSeed],
+    token_program: &Address,
+) -> ProgramResult {
+    if is_token_program(token_program) {
+        token::revoke(source, authority, signer_seeds)
+    } else if is_token_2022_program(token_program) {
+        token_2022::revoke(source, authority, signer_seeds)
+    } else {
+        Err(ProgramError::InvalidAccountOwner)
+    }
+}
+
+#[inline]
+pub fn set_authority(
+    account: &AccountView,
+    authority: &AccountView,
+    signer_seeds: &[CpiSeed],
+    authority_type: AuthorityType,
+    new_authority: Option<&Address>,
+    token_program: &Address,
+) -> ProgramResult {
+    if is_token_program(token_program) {
+        token::set_authority(
+            account,
+            authority,
+            signer_seeds,
+            to_token_authority_type(authority_type),
+            new_authority,
+        )
+    } else if is_token_2022_program(token_program) {
+        token_2022::set_authority(
+            account,
+            authority,
+            signer_seeds,
+            to_token_2022_authority_type(authority_type),
+            new_authority,
+        )
+    } else {
+        Err(ProgramError::InvalidAccountOwner)
+    }
+}
+
+#[inline]
+pub fn freeze_account(
+    account: &AccountView,
+    mint: &AccountView,
+    freeze_authority: &AccountView,
+    signer_seeds: &[CpiSeed],
+    token_program: &Address,
+) -> ProgramResult {
+    if is_token_program(token_program) {
+        token::freeze_account(account, mint, freeze_authority, signer_seeds)
+    } else if is_token_2022_program(token_program) {
+        token_2022::freeze_account(account, mint, freeze_authority, signer_seeds)
+    } else {
+        Err(ProgramError::InvalidAccountOwner)
+    }
+}
+
+#[inline]
+pub fn thaw_account(
+    account: &AccountView,
+    mint: &AccountView,
+    freeze_authority: &AccountView,
+    signer_seeds: &[CpiSeed],
+    token_program: &Address,
+) -> ProgramResult {
+    if is_token_program(token_program) {
+        token::thaw_account(account, mint, freeze_authority, signer_seeds)
+    } else if is_token_2022_program(token_program) {
+        token_2022::thaw_account(account, mint, freeze_authority, signer_seeds)
+    } else {
+        Err(ProgramError::InvalidAccountOwner)
+    }
+}
+
+#[inline]
+pub fn close_account(
+    account: &AccountView,
+    destination: &AccountView,
+    authority: &AccountView,
+    signer_seeds: &[CpiSeed],
+    token_program: &Address,
+) -> ProgramResult {
+    if is_token_program(token_program) {
+        token::close_account(account, destination, authority, signer_seeds)
+    } else if is_token_2022_program(token_program) {
+        token_2022::close_account(account, destination, authority, signer_seeds)
+    } else {
+        Err(ProgramError::InvalidAccountOwner)
+    }
+}
+
+#[inline]
+pub fn sync_native(
+    native_token: &AccountView,
+    rent_sysvar: Option<&AccountView>,
+    signer_seeds: &[CpiSeed],
+    token_program: &Address,
+) -> ProgramResult {
+    if is_token_program(token_program) {
+        token::sync_native(native_token, rent_sysvar, signer_seeds)
+    } else if is_token_2022_program(token_program) {
+        token_2022::sync_native(native_token, signer_seeds)
+    } else {
+        Err(ProgramError::InvalidAccountOwner)
+    }
+}
+
+#[inline]
+pub fn init_immutable_owner(
+    account: &AccountView,
+    signer_seeds: &[CpiSeed],
+    token_program: &Address,
+) -> ProgramResult {
+    if is_token_program(token_program) {
+        token::init_immutable_owner(account, signer_seeds)
+    } else if is_token_2022_program(token_program) {
+        token_2022::init_immutable_owner(account, signer_seeds)
     } else {
         Err(ProgramError::InvalidAccountOwner)
     }
