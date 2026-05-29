@@ -350,13 +350,32 @@ pub fn derive_context(input: TokenStream) -> TokenStream {
         _ => panic!("Context derive only works on structs"),
     };
 
-    let accounts_len = fields.len();
+    let has_remaining_accounts = fields.iter().any(|field| {
+        field
+            .ident
+            .as_ref()
+            .is_some_and(|ident| ident == "remaining_accounts")
+    });
+
+    let accounts_len = if has_remaining_accounts {
+        fields.len() - 1
+    } else {
+        fields.len()
+    };
+
+    let mut account_index = 0usize;
     let field_assignments: Vec<_> = fields
         .iter()
-        .enumerate()
-        .map(|(i, field)| {
+        .map(|field| {
             let field_name = field.ident.as_ref().unwrap();
-            quote! { #field_name: &accounts.get_unchecked(#i), }
+
+            if field_name == "remaining_accounts" {
+                quote! { #field_name: accounts.get_unchecked(Self::ACCOUNTS_LEN..), }
+            } else {
+                let i = account_index;
+                account_index += 1;
+                quote! { #field_name: &accounts.get_unchecked(#i), }
+            }
         })
         .collect();
 
@@ -367,7 +386,7 @@ pub fn derive_context(input: TokenStream) -> TokenStream {
             fn build(accounts: &mut [pinocchio::AccountView])
                 -> Result<Self, pinocchio::error::ProgramError>
             {
-                if accounts.len() != Self::ACCOUNTS_LEN {
+                if accounts.len() < Self::ACCOUNTS_LEN {
                     return Err(pinocchio::error::ProgramError::InvalidAccountData);
                 }
 
