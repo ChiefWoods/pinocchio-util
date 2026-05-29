@@ -140,8 +140,8 @@ impl Parse for ValidationAttr {
         let mut non_empty = false;
         let mut len = None;
         let mut id = None;
-        let is_signer = false;
-        let is_executable = false;
+        let mut is_signer = false;
+        let mut is_executable = false;
 
         let args = Punctuated::<Meta, Token![,]>::parse_terminated(input)?;
 
@@ -150,6 +150,10 @@ impl Parse for ValidationAttr {
                 Meta::Path(path) => {
                     if path.is_ident("non_empty") {
                         non_empty = true;
+                    } else if path.is_ident("is_signer") {
+                        is_signer = true;
+                    } else if path.is_ident("is_executable") || path.is_ident("executable") {
+                        is_executable = true;
                     }
                 }
                 Meta::NameValue(name_value) => {
@@ -245,7 +249,7 @@ pub fn derive_validate(input: TokenStream) -> TokenStream {
                 if attr.is_signer {
                     checks.push(quote! {
                         if !self.#field_name.is_signer() {
-                            return Err(pinocchio::error::ProgramError::InvalidAccountData);
+                            return Err(pinocchio::error::ProgramError::MissingRequiredSignature);
                         }
                     });
                 }
