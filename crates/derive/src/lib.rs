@@ -363,38 +363,35 @@ pub fn derive_context(input: TokenStream) -> TokenStream {
         fields.len()
     };
 
-    let mut account_index = 0usize;
-    let field_assignments: Vec<_> = fields
-        .iter()
-        .map(|field| {
-            let field_name = field.ident.as_ref().unwrap();
+    let mut pattern_fields: Vec<proc_macro2::TokenStream> = Vec::new();
+    let mut init_fields: Vec<proc_macro2::TokenStream> = Vec::new();
 
-            if field_name == "remaining_accounts" {
-                quote! { #field_name: accounts.get_unchecked(Self::ACCOUNTS_LEN..), }
-            } else {
-                let i = account_index;
-                account_index += 1;
-                quote! { #field_name: &accounts.get_unchecked(#i), }
-            }
-        })
-        .collect();
+    for field in fields.iter() {
+        let field_name = field.ident.as_ref().unwrap();
+        if field_name == "remaining_accounts" {
+            pattern_fields.push(quote! { remaining_accounts @ .. });
+            init_fields.push(quote! { remaining_accounts });
+        } else {
+            pattern_fields.push(quote! { #field_name });
+            init_fields.push(quote! { #field_name });
+        }
+    }
 
     let expanded = quote! {
         impl<'info> pinocchio_util::Context<'info> for #name<'info> {
             const ACCOUNTS_LEN: usize = #accounts_len;
 
-            fn build(accounts: &mut [pinocchio::AccountView])
+            fn build(accounts: &'info mut [pinocchio::AccountView])
                 -> Result<Self, pinocchio::error::ProgramError>
             {
                 if accounts.len() < Self::ACCOUNTS_LEN {
                     return Err(pinocchio::error::ProgramError::InvalidAccountData);
                 }
 
-                Ok(unsafe {
-                    Self {
-                        #(#field_assignments)*
-                    }
-                })
+                let [#(#pattern_fields),*] = accounts else {
+                    return Err(pinocchio::error::ProgramError::InvalidAccountData);
+                };
+                Ok(Self { #(#init_fields),* })
             }
         }
     };
