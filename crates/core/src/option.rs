@@ -57,10 +57,15 @@ macro_rules! parse_option_impl {
 
             #[inline]
             fn from_le_slice(data: &[u8]) -> Result<Self, ProgramError> {
-                let bytes: [u8; core::mem::size_of::<$t>()] = data
-                    .try_into()
-                    .map_err(|_| ProgramError::InvalidInstructionData)?;
-                Ok(<$t>::from_le_bytes(bytes))
+                if data.len() != core::mem::size_of::<$t>() {
+                    return Err(ProgramError::InvalidInstructionData);
+                }
+
+                // SAFETY:
+                // - `data.len()` is exactly `size_of::<$t>()`, so one `$t` read is in-bounds.
+                // - `read_unaligned` supports potentially unaligned byte pointers.
+                let raw = unsafe { core::ptr::read_unaligned(data.as_ptr() as *const $t) };
+                Ok(<$t>::from_le(raw))
             }
         }
     };
