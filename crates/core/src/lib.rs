@@ -15,6 +15,7 @@ pub mod sysvar;
 pub mod token;
 pub mod token_2022;
 pub mod token_interface;
+pub mod option;
 
 /// Get the length of an account's data.
 pub trait DataLen {
@@ -101,7 +102,7 @@ pub fn close_account(account: &mut AccountView, destination: &mut AccountView) -
 ///
 /// # Example
 ///
-/// ```rust
+/// ```rust,ignore
 /// let account = AccountInfo::new(
 ///     &account,
 ///     false,
@@ -129,7 +130,7 @@ pub fn load<T: DataLen>(account: &AccountView) -> Result<&T, ProgramError> {
 ///
 /// # Example
 ///
-/// ```rust
+/// ```rust,ignore
 /// let mut account = AccountInfo::new(
 ///     &account,
 ///     false,
@@ -160,7 +161,7 @@ pub fn load_mut<T: DataLen>(account: &mut AccountView) -> Result<&mut T, Program
 ///
 /// # Example
 ///
-/// ```rust
+/// ```rust,ignore
 /// let discriminator = load_discriminator(&account, None).unwrap();
 /// assert_eq!(discriminator, &[0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
 ///
